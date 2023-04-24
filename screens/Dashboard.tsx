@@ -3,12 +3,13 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 
 
-export default function Dashboard({ switchScreens }: { switchScreens: (status: string) => void }) {
+export default function Dashboard({ form }: any) {
   const [forums, setForums] : any = useState({})
   useEffect(()=>{
-    axios.get('http://192.168.1.223:8000/getAllForms/',{
+    axios.get('http://169.226.236.211:8000/getAllForms/',{
       data: undefined
     },).then(res => {
+      console.log(res.data)
       setForums(res.data)
     }).catch((err)=>console.log(err))
   },[])
@@ -23,7 +24,7 @@ export default function Dashboard({ switchScreens }: { switchScreens: (status: s
         Object.keys(forums).length > 0 ? 
          Object.keys(forums).map((key: any, index) => {
           return (
-            <TouchableOpacity key={index} onPress={() => switchScreens(forums[key].complete ? '': 'Form')}>
+            <TouchableOpacity key={index} onPress={() => form(forums[key])}>
               <View className='bg-slate-300 rounded-lg p-3 py-5 mb-3 '>
                 <View className='flex-row justify-between items-center mb-3'>
                   <Text className='text-slate-800 text-lg'>{forums[key].name}</Text>

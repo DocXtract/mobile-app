@@ -1,18 +1,74 @@
-import { Button, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import CheckBox from 'expo-checkbox';
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 
-export default function Fill_Form() {
+import Button from '../components/Button';
+const staticData = {
+    "text": [
+        "MUSKAAN SHAIKH",
+        "Yes",
+        "SOFTWARE ENGINEERING",
+        "SPRING",
+        "No",
+        "No",
+        "Yes",
+        "No",
+        "Yes",
+        "Yes",
+        "No",
+        "No"
+    ]
+}
+
+function timeout(delay: number) {
+    return new Promise(res => setTimeout(res, delay));
+}
+export default function Fill_Form({ switchScreens, photo, forum }: any) {
     const [form, setForm]: any = useState({})
     const [details, setDetails]: any = useState({})
     useEffect(() => {
-        axios.get('http://192.168.1.223:8000/getForm/0', {
+        let fields: any = {}
+        axios.get(`http://169.226.236.211:8000/getForm/${forum.index}`, {
             data: undefined
         },).then(res => {
-            console.log(res.data.data)
+            fields = res.data.fields
             setForm(res.data.fields)
             setDetails(res.data.data)
+
+        }).then(async () => {
+
+            if (photo) {
+                const formData = new FormData()
+                photo.map((img: any, index: any) => {
+                    const data: any = {
+                        uri: img.uri,
+                        name: `form${index + 1}.jpg`,
+                        type: 'image/jpg'
+                    }
+                    formData.append(data.name, data);
+                })
+
+                formData.append('fields', JSON.stringify(fields))
+                console.log(typeof (fields))
+                axios.post('http://169.226.236.211:8000/extract', formData).then((res) => {
+                    console.log(res)
+                    setForm(res.data)
+                }).catch((err) => console.log(err))
+                // let formUpdates = { ...form }
+                // Object.keys(fields).map((field: any) => {
+                //     formUpdates = {
+                //         ...formUpdates,
+                //         [field]: {
+                //             ...fields[field],
+                //             value: staticData.text[Number(field)]
+                //         }
+                //     }
+                // })
+                // setForm(formUpdates)
+            }
+
+
         }).catch((err) => console.log(err))
     }, [])
     const handleTextChange = (key: any, val: any) => {
@@ -44,7 +100,6 @@ export default function Fill_Form() {
         if (form[key].value === 'No')
             Object.keys(form).map((k) => {
                 if (form[k].groupName === form[key].groupName && k !== key) {
-                    console.log(form[k].name)
                     form_copy = {
                         ...form_copy, [k]: {
                             ...form_copy[k],
@@ -55,15 +110,27 @@ export default function Fill_Form() {
             })
         setForm(form_copy)
     }
-    console.log(form)
+
+    const handleSubmit = () => {
+        console.log({ data: details, fields: form })
+        axios.post('http://169.226.236.211:8000/submitForm/', { data: details, fields: form }).then(res => {
+            console.log(res)
+            switchScreens('Dashboard')
+        }).catch((err) => console.log(err))
+    }
+
     return (
         <SafeAreaView>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                <View className='p-absolute flex-row m-5'>
+                    <Button title='' icon='back' onPress={() => switchScreens('Form')} color="#000" />
+                </View>
                 <View className='flex-1 flex-column items-center'>
                     <Text className='text-2xl font-bold my-2'>{details?.name}</Text>
                     <Text className='text-md font-semibold'>{details?.organizer}</Text>
                 </View>
                 <View className='flex-1 mx-10 my-5'>
+
                     {Object.keys(form).length > 0 ?
                         Object.keys(form).map((key: any, index) => {
                             return (
@@ -76,8 +143,8 @@ export default function Fill_Form() {
                                             </>
                                             : form[key].type === 'checkbox' ?
                                                 <View className='flex flex-row mb-5'>
-                                                    <Text className='mr-5'>{form[key].name}</Text>
                                                     <CheckBox value={form[key].value === 'Yes' ? true : false} onValueChange={() => handleCheckboxChange(key)} />
+                                                    <Text className='ml-5'>{form[key].name}</Text>
                                                 </View>
                                                 : form[key].type === "mc" && form[key].singleSelectionOnly
                                                     ? <View className='mb-5'>
@@ -99,7 +166,7 @@ export default function Fill_Form() {
                     }
                 </View>
                 <View className='flex-1 flex-row justify-center'>
-                    <TouchableOpacity className='border-2 rounded-xl bg-black py-3 px-5'>
+                    <TouchableOpacity className='border-2 rounded-xl bg-black py-3 px-5' onPress={handleSubmit}>
                         <Text className='text-white'>Submit</Text>
                     </TouchableOpacity>
                 </View>
