@@ -24,52 +24,54 @@ const staticData = {
 function timeout(delay: number) {
     return new Promise(res => setTimeout(res, delay));
 }
-export default function Fill_Form({ switchScreens, photo, forum }: any) {
+export default function Fill_Form({ switchScreens, formDetails, scan }: any) {
     const [form, setForm]: any = useState({})
     const [details, setDetails]: any = useState({})
     useEffect(() => {
         let fields: any = {}
-        axios.get(`http://169.226.236.211:8000/getForm/${forum.index}`, {
-            data: undefined
-        },).then(res => {
-            fields = res.data.fields
-            setForm(res.data.fields)
-            setDetails(res.data.data)
+        setForm(formDetails.fields)
+        setDetails(formDetails.data)
+        // axios.get(`http://192.168.1.223:8000/getForm/${forum.index}`, {
+        //     data: undefined
+        // },).then(res => {
+        //     fields = res.data.fields
+        //     setForm(res.data.fields)
+        //     setDetails(res.data.data)
 
-        }).then(async () => {
+        // }).then(async () => {
 
-            if (photo) {
-                const formData = new FormData()
-                photo.map((img: any, index: any) => {
-                    const data: any = {
-                        uri: img.uri,
-                        name: `form${index + 1}.jpg`,
-                        type: 'image/jpg'
-                    }
-                    formData.append(data.name, data);
-                })
+        //     if (photo) {
+        //         const formData = new FormData()
+        //         photo.map((img: any, index: any) => {
+        //             const data: any = {
+        //                 uri: img.uri,
+        //                 name: `form${index + 1}.jpg`,
+        //                 type: 'image/jpg'
+        //             }
+        //             formData.append(data.name, data);
+        //         })
 
-                formData.append('fields', JSON.stringify(fields))
-                console.log(typeof (fields))
-                axios.post('http://169.226.236.211:8000/extract', formData).then((res) => {
-                    console.log(res)
-                    setForm(res.data)
-                }).catch((err) => console.log(err))
-                // let formUpdates = { ...form }
-                // Object.keys(fields).map((field: any) => {
-                //     formUpdates = {
-                //         ...formUpdates,
-                //         [field]: {
-                //             ...fields[field],
-                //             value: staticData.text[Number(field)]
-                //         }
-                //     }
-                // })
-                // setForm(formUpdates)
-            }
+        //         formData.append('fields', JSON.stringify(fields))
+        //         console.log(typeof (fields))
+        //         axios.post('http://192.168.1.223:8000/extract', formData).then((res) => {
+        //             console.log(res)
+        //             setForm(res.data)
+        //         }).catch((err) => console.log(err))
+        //         // let formUpdates = { ...form }
+        //         // Object.keys(fields).map((field: any) => {
+        //         //     formUpdates = {
+        //         //         ...formUpdates,
+        //         //         [field]: {
+        //         //             ...fields[field],
+        //         //             value: staticData.text[Number(field)]
+        //         //         }
+        //         //     }
+        //         // })
+        //         // setForm(formUpdates)
+        //     }
 
 
-        }).catch((err) => console.log(err))
+        // }).catch((err) => console.log(err))
     }, [])
     const handleTextChange = (key: any, val: any) => {
         setForm({
@@ -113,33 +115,35 @@ export default function Fill_Form({ switchScreens, photo, forum }: any) {
 
     const handleSubmit = () => {
         console.log({ data: details, fields: form })
-        axios.post('http://169.226.236.211:8000/submitForm/', { data: details, fields: form }).then(res => {
+        axios.post('http://169.226.47.83:8000/submitForm/', { data: details, fields: form }).then(res => {
             console.log(res)
             switchScreens('Dashboard')
         }).catch((err) => console.log(err))
     }
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{ backgroundColor: '#EEEFF3' }}>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 <View className='p-absolute flex-row m-5'>
-                    <Button title='' icon='back' onPress={() => switchScreens('Form')} color="#000" />
+                    <Button title='Go to Options' icon='back' onPress={() => switchScreens('Form')} color="#BEA4D0" />
                 </View>
                 <View className='flex-1 flex-column items-center'>
-                    <Text className='text-2xl font-bold my-2'>{details?.name}</Text>
-                    <Text className='text-md font-semibold'>{details?.organizer}</Text>
+                    <Text className='text-2xl font-bold my-2' style={{ fontFamily: 'Georgia' }}>{details?.name}</Text>
+                    {/* <Text className='text-md font-semibold'>{details?.organizer}</Text> */}
                 </View>
                 <View className='flex-1 mx-10 my-5'>
 
                     {Object.keys(form).length > 0 ?
                         Object.keys(form).map((key: any, index) => {
+                            console.log(scan, !form[key].name.includes('Signature'))
                             return (
                                 <View key={index}>
                                     {
                                         form[key].type === 'text' ?
+                                            ((scan && !form[key].name.includes('Signature')) || !scan) &&
                                             <>
                                                 <Text className='text-bold'>{form[key].name}</Text>
-                                                <TextInput value={form[key].value} onChangeText={text => handleTextChange(key, text)} className='border-2 rounded-xl mt-2 mb-5 p-5' />
+                                                <TextInput value={form[key].value} onChangeText={text => handleTextChange(key, text)} className='border bg-white rounded-xl mt-1 mb-3 p-2' />
                                             </>
                                             : form[key].type === 'checkbox' ?
                                                 <View className='flex flex-row mb-5'>
@@ -165,9 +169,9 @@ export default function Fill_Form({ switchScreens, photo, forum }: any) {
                         <Text>No Items</Text>
                     }
                 </View>
-                <View className='flex-1 flex-row justify-center'>
-                    <TouchableOpacity className='border-2 rounded-xl bg-black py-3 px-5' onPress={handleSubmit}>
-                        <Text className='text-white'>Submit</Text>
+                <View className='flex-1 flex-row justify-center' style={{ marginTop: 10, marginBottom: 30 }}>
+                    <TouchableOpacity className='rounded-xl py-3 px-5' style={{ backgroundColor: '#BEA4D0' }} onPress={handleSubmit}>
+                        <Text className='text-white' style={{ fontFamily: 'Georgia', fontWeight: '500', fontSize: 18 }}>Submit</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

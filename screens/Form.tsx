@@ -4,12 +4,13 @@ import CameraPreview from '../components/CameraPreview'
 import Button from '../components/Button'
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
+import * as Print from 'expo-print';
 
 interface cameraStatus {
     status: string
 }
 
-export default function Form({ switchScreens, updatePhoto, forum }: any) {
+export default function Form({ switchScreens, updateFormDetails, formDetails, updatePhoto, forum }: any) {
     const [cameraStarted, setCameraStarted] = useState(false)
     const [previewVisible, setPreviewVisible] = useState(false)
     const [capturedImage, setCapturedImage] = useState<any>([])
@@ -19,12 +20,17 @@ export default function Form({ switchScreens, updatePhoto, forum }: any) {
     const cameraRef: any = useRef(null);
     const [flashMode, setFlashMode] = useState(FlashMode.off)
     const [pages, setPages] = useState(1)
-    console.log(pages)
+    const reset = () => {
+        setPreviewVisible(false)
+        setCapturedImage([])
+        setImageIndex(0)
+    }
     useEffect(() => {
-        axios.get(`http://169.226.236.211:8000/getForm/${forum.index}`, {
+        axios.get(`http://169.226.47.83:8000/getForm/${forum.index}`, {
             data: undefined
         },).then(res => {
-            console.log(res.data)
+            // console.log(res.data)
+            updateFormDetails(res.data)
             setPages(res.data.pages)
         })
     }, [])
@@ -42,7 +48,7 @@ export default function Form({ switchScreens, updatePhoto, forum }: any) {
         if (cameraRef) {
             try {
                 const photo = await cameraRef.current.takePictureAsync();
-                console.log(photo)
+                // console.log(photo)
                 let update = [...capturedImage]
                 update[imageIndex] = photo
                 setCapturedImage(update)
@@ -61,6 +67,30 @@ export default function Form({ switchScreens, updatePhoto, forum }: any) {
         else Alert.alert("Access denied")
     }
 
+    const printForm = async () => {
+        await axios({
+            url: forum.printable,
+            method: 'GET',
+            responseType: 'blob'
+        }).then(async (response) => {
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const printOptions = {
+                html: `<iframe src=${url} style={{display: none}} />`,
+                width: 595,
+                height: 842,
+                base64: true,
+            };
+
+            const printResult = await Print.printAsync(printOptions);
+
+            console.log(printResult);
+
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+
     const closeCamera = () => {
         setCameraStarted(false)
     }
@@ -74,10 +104,10 @@ export default function Form({ switchScreens, updatePhoto, forum }: any) {
         setPreviewVisible(false)
     }
     return (
-        <SafeAreaView className='bg-slate-200 flex-1'>
+        <SafeAreaView className='flex-1' style={{ backgroundColor: '#EEEFF3' }}>
             {cameraStarted ?
                 previewVisible && capturedImage ? (
-                    <CameraPreview photo={capturedImage[imageIndex]} lastPage={imageIndex === pages - 1} handleNext={handleNext} switchScreens={switchScreens} cancel={() => {
+                    <CameraPreview reset={reset} formDetails={formDetails} updateFormDetails={updateFormDetails} photo={capturedImage} imageIndex={imageIndex} forum={forum} lastPage={imageIndex === pages - 1} handleNext={handleNext} switchScreens={switchScreens} cancel={() => {
                         setPreviewVisible(false)
                         delete capturedImage[imageIndex]
                     }} />
@@ -145,21 +175,23 @@ export default function Form({ switchScreens, updatePhoto, forum }: any) {
                 : (
                     <SafeAreaView>
                         <View className='p-absolute flex-row m-5'>
-                            <Button title='Go to Dashboard' icon='back' onPress={() => switchScreens('Dashboard')} color="#000" />
+                            <Button title='Go to Dashboard' icon='back' onPress={() => switchScreens('Dashboard')} color="#BEA4D0" />
                         </View>
                         <View className='flex-column items-center'>
-                            <Text className='text-2xl font-bold my-2'>{forum?.name}</Text>
-                            <Text className='text-md font-semibold'>{forum?.organizer}</Text>
+                            <Text className='text-3xl font-bold my-2' style={{ fontFamily: 'Georgia' }}>{forum?.name}</Text>
+                            <Text className='text-sm my-2 px-10 text-center' style={{ fontFamily: 'Georgia' }}>Select a form filling method. You can either type it manually or scan a copy of ink filled form. Please print the form if you prefer to scan.</Text>
+
+                            {/* <Text className='text-md font-semibold'>{forum?.organizer}</Text> */}
                         </View>
                         <View className='mt-[100] items-center'>
-                            <View className='border-2 rounded-lg w-[200]'>
-                                <Button title='Print Document' icon='print' onPress={startCamera} color="#000" />
+                            <View className='border-2 rounded-lg w-[200]' style={{ borderColor: '#BEA4D0', backgroundColor: '#ffffff' }}>
+                                <Button title='Print Document' icon='print' onPress={printForm} color="#BEA4D0" />
                             </View>
-                            <View className='border-2 rounded-lg w-[200] mt-10'>
-                                <Button title='Scan Document' icon='camera' onPress={startCamera} color="#000" />
+                            <View className='border-2 rounded-lg w-[200] mt-10' style={{ borderColor: '#BEA4D0', backgroundColor: '#ffffff' }}>
+                                <Button title='Scan Document' icon='camera' onPress={startCamera} color="#BEA4D0" />
                             </View>
-                            <View className='border-2 rounded-lg w-[200] mt-10'>
-                                <Button title='Fill Manually' icon='edit' onPress={fillForm} color="#000" />
+                            <View className='border-2 rounded-lg w-[200] mt-10' style={{ borderColor: '#BEA4D0', backgroundColor: '#ffffff' }}>
+                                <Button title='Fill Manually' icon='edit' onPress={fillForm} color="#BEA4D0" />
                             </View>
                         </View>
                     </SafeAreaView>
