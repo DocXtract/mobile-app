@@ -2,11 +2,12 @@ import { SafeAreaView, Text, View, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Entypo } from "@expo/vector-icons"
+import { base_url } from '../config'
 
 export default function Dashboard({ form }: any) {
   const [forums, setForums]: any = useState({})
   useEffect(() => {
-    axios.get('http://169.226.47.83:8000/getAllForms/', {
+    axios.get(`${base_url}/getAllForms/`, {
       data: undefined
     },).then(res => {
       console.log(res.data)

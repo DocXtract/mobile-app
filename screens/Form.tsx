@@ -5,6 +5,7 @@ import Button from '../components/Button'
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 import * as Print from 'expo-print';
+import { base_url } from '../config'
 
 interface cameraStatus {
     status: string
@@ -26,7 +27,7 @@ export default function Form({ switchScreens, updateFormDetails, formDetails, up
         setImageIndex(0)
     }
     useEffect(() => {
-        axios.get(`http://169.226.47.83:8000/getForm/${forum.index}`, {
+        axios.get(`${base_url}/getForm/${forum.index}`, {
             data: undefined
         },).then(res => {
             // console.log(res.data)

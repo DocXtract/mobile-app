@@ -1,6 +1,7 @@
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { View, ImageBackground, TouchableOpacity, Text, Animated, Alert } from "react-native"
+import { base_url } from "../config"
 
 export default function CameraPreview({ photo, reset, imageIndex, updateFormDetails, lastPage, formDetails, handleNext, cancel, switchScreens }: any) {
   const [startAnimation, setStartAnimation] = useState(false)
@@ -22,7 +23,7 @@ export default function CameraPreview({ photo, reset, imageIndex, updateFormDeta
     })
 
     formData.append('fields', JSON.stringify(formDetails.fields))
-    axios.post('http://169.226.47.83:8000/extract', formData).then((res) => {
+    axios.post(`${base_url}/extract`, formData).then((res) => {
       console.log(res)
       formDetails.fields = res.data
       updateFormDetails(formDetails)

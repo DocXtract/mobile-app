@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 
 import Button from '../components/Button';
+import { base_url } from '../config';
 const staticData = {
     "text": [
         "MUSKAAN SHAIKH",
@@ -115,7 +116,7 @@ export default function Fill_Form({ switchScreens, formDetails, scan }: any) {
 
     const handleSubmit = () => {
         console.log({ data: details, fields: form })
-        axios.post('http://169.226.47.83:8000/submitForm/', { data: details, fields: form }).then(res => {
+        axios.post(`${base_url}/submitForm/`, { data: details, fields: form }).then(res => {
             console.log(res)
             switchScreens('Dashboard')
         }).catch((err) => console.log(err))
