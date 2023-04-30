@@ -5,3 +5,4 @@
 3. Change the base_url to the local url copied from terminal when running server
 4. Run `npm start` to start the app (Download expo globally if issue running)
 5. Scan the QR code from terminal using mobile camera and it would redirect to the App in Expo Go
+6. 
